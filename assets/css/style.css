@@ -1,41 +1,9 @@
-/* ----------------------------------------------------------------------------------------
-* Author        : Aman
-* Template Name : Resu | Personal Portfolio Template
-* File          : Resu main css files
-* Version       : 1.0
-* ---------------------------------------------------------------------------------------- */
+@import url('https://fonts.googleapis.com/css2?family=Bitter:ital,wght@0,100..900;1,100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,100..900;1,100..900&display=swap');
 
-
-
-    
-/* INDEX
-----------------------------------------------------------------------------------------
-
-01. General css
-
-02. Navigation area css
-
-03. Header area css
-
-04. About area css
-
-05. Service area css
-
-06. Portfolio/work area css
-
-07. Testimonial area css
-
-08. Contact area css
-
-09. Footer area css
-
--------------------------------------------------------------------------------------- */
-
-
-
-/* Fonts 'Gotham Rounded' */
+/* Fonts 'Gotham Rounded'
 @font-face {
-  font-family: 'GothamRounded-Book';
+  font-family: 'Noto-Sans';
   src: url('../fonts/GothamRounded-book.eot');
   src: url('../fonts/GothamRounded-book.woff2') format('woff2'),
        url('https://infolook.net/tf_preview/reju/assets/fonts/GothamRounded-book.woff') format('woff'),
@@ -46,7 +14,7 @@
   font-style: normal;
 }
 @font-face {
-  font-family: 'GothamRounded-Medium';
+  font-family: 'GothamRounded';
   src: url('../fonts/GothamRounded-Medium.eot');
   src: url('../fonts/GothamRounded-Medium.woff2') format('woff2'),
        url('../fonts/GothamRounded-Medium.woff') format('woff'),
@@ -66,7 +34,7 @@
        url('../fonts/GothamRounded-Bold.eot%3F') format('embedded-opentype');
   font-weight: normal;
   font-style: normal;
-}
+} */
 
 
 /* ----------------------------------------------------------------------------------------
@@ -224,7 +192,7 @@ h3.subtitle {
 }
 
 .img-responsive {
-    max-height: 535px;
+    min-width: 360px;
     /* color: */
     border-radius: 7px;
 }
@@ -287,7 +255,10 @@ h3.subtitle {
 .socials {
     width: 100%;
     display: flex;
+    flex-direction: column;
     justify-content: center;
+    align-items: center;
+    gap: 10vh;
     margin-top: 10vh;
 }
 
@@ -320,8 +291,9 @@ h3.subtitle {
 
 .navbar-nav li a {
     color: #fff;
-    font-weight: 400;
-    font-family: 'GothamRounded-Medium';
+    font-size: 18px;
+    font-weight: bold;
+    /* font-family: 'Bitter'; */
 }
 
 .nav > li > a:hover,
@@ -371,6 +343,7 @@ h3.subtitle {
     padding-left: 15px;
     padding-right: 15px;
     color: #fff;
+    font-family: none;
 }
 
 .caption h4 {
@@ -413,6 +386,11 @@ h3.subtitle {
     margin-top: 10px;
 }
 
+.selected_btn {
+    border: 2px solid red !important;
+    color: orange !important;
+}
+
 .no_select {
     -webkit-touch-callout: none; /* iOS Safari */
       -webkit-user-select: none; /* Safari */
@@ -435,9 +413,39 @@ h3.subtitle {
     overflow: hidden;
 }
 
+.btns-change {
+    display: flex;
+    gap: 10px;
+}
+
+.btn_change {
+    font-size: 20px;
+    background-color: black;
+    color: white;
+    border: 2px solid white;
+    padding: 3px 10px 3px 10px;
+    border-radius: 10px;
+    font-weight: bold;
+    transition-duration: .2s;
+}
+
+.btn_change:hover {
+    transition-duration: .2s;
+    color: red;
+    background-color: transparent;
+}
+
+.btn_change:active {
+    color: black;
+    background-color: white;
+}
+
 .fa-support {
     padding-top: 5px;
-    background-color: darkblue;
+}
+
+.translate {
+    font-family: 'Noto Sans';
 }
 
 .contact-info li i.fa {

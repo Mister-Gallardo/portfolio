@@ -6,6 +6,12 @@
 
 /* Medium Layout */
 
+@media (min-width: 1200px) {
+  .about-text {
+    margin-left: -45px;
+  }
+}
+
 @media only screen and (min-width: 992px) and (max-width: 1200px) {
   .process-box:before {
     left: 80px;
@@ -136,6 +142,7 @@
     display: flex;
     justify-content: center;
     margin-bottom: 30px;
+    /* min-width: 1000px; */
   }
 
   .about-text h2,
@@ -219,4 +226,9 @@
     width: 90%;
     height: 37vw;
   }
+  .img-responsive {
+    min-width: 280px;
+    /* color: */
+    border-radius: 7px;
+}
 }
