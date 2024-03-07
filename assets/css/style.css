@@ -321,7 +321,7 @@ h3.subtitle {
     min-height: 300px;
     /* max-height: 650px; */
     position: relative;
-    background-image: url(../img/bg/header-bg.jpg);
+    background: linear-gradient(to right, #DC143C, #4169E1);
     background-size: cover;
     background-position: center center;
     background-attachment: fixed;
