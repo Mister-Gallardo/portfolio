@@ -182,7 +182,7 @@
   }
 
   .work-items .item img {
-    width: 80vw;
+    width: 100%;
   }
 
   .work-items .item {
@@ -217,9 +217,6 @@
   }
   .single-testimonial p {
     padding: 0 20px;
-  }
-  .work-items .item img {
-    width: 90vw;
   }
 
   .work-items .item {
