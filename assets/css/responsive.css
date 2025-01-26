@@ -10,7 +10,7 @@
   .about-text {
     margin-left: -45px;
   }
-}
+}img-responsive
 
 @media only screen and (min-width: 992px) and (max-width: 1200px) {
   .process-box:before {
