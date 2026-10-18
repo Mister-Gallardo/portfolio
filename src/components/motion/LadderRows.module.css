@@ -1,0 +1,25 @@
+/*
+  Runs on the compositor and needs no script. The range covers the row's first 28% of
+  the viewport: from entering at the bottom edge until it reaches 70% of the height.
+  Browsers without scroll timelines show the rows as they are.
+*/
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) and (width >= 48rem) {
+    .ladder [data-ladder-row] > * {
+      animation: ladder-in linear both;
+      animation-timeline: view();
+      animation-range: cover 2vh cover 30vh;
+    }
+
+    .ladder [data-ladder-row]:nth-child(odd) > * {
+      --ladder-side: -1;
+    }
+  }
+}
+
+@keyframes ladder-in {
+  from {
+    opacity: 0.25;
+    translate: calc(var(--ladder-side, 1) * 8vw) 0;
+  }
+}

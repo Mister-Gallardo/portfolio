@@ -1,0 +1,375 @@
+/*
+  Career timeline.
+  Default: a vertical list with a straight thread — used on small screens, with reduced
+  motion and without JavaScript (the `scripting` media feature keeps the content
+  reachable when scripts are off).
+  Large screens: the section becomes a tall scroll runway and the stage sticks to the
+  viewport. The heading stays at the top, its subtitle follows the current stop, and
+  the track below slides sideways along a wave-shaped thread.
+*/
+
+.section {
+  --count: 5;
+  /* Thread before the first stop and after the last one, in steps: enough to fill
+     screens up to 4K at either end. Keep in sync with createWave() in Experience.tsx. */
+  --lead-in: 2;
+  --lead-out: 3.4;
+  /* Where the head of the lit thread sits on screen. Keep in sync with HEAD in
+     TimelineMotion.tsx. */
+  --head: 0.5;
+  /* How far ahead of the head the first stop waits when the stage pins, and how far
+     past the last stop the head travels before the page scrolls on, in steps. */
+  --approach: 0.4;
+  --beyond: 0.9;
+  --step: clamp(24rem, 36vw, 40rem);
+  --lit-color: var(--color-brass);
+
+  position: relative;
+}
+
+.stage {
+  max-width: 96rem;
+  margin-inline: auto;
+  padding: clamp(6rem, 12vw, 11rem) var(--gutter);
+}
+
+.intro {
+  max-width: 34rem;
+}
+
+/* The intro and the chapter lines share one grid cell, so swapping them never moves
+   the layout. */
+.lines {
+  display: grid;
+  max-width: 30ch;
+  margin-top: 1.5rem;
+  color: var(--muted);
+  font-size: var(--text-lead);
+  font-weight: 300;
+  line-height: var(--text-lead--line-height);
+}
+
+.line {
+  grid-area: 1 / 1;
+}
+
+/* Chapter lines belong to the horizontal timeline only. */
+.line[aria-hidden] {
+  display: none;
+}
+
+.wave {
+  display: none;
+}
+
+.list {
+  position: relative;
+  display: grid;
+  gap: 3.5rem;
+  margin-top: 4rem;
+  padding-left: 2.25rem;
+}
+
+/* The straight thread of the vertical layout. */
+.list::before {
+  content: "";
+  position: absolute;
+  top: 0.5rem;
+  bottom: 0.5rem;
+  left: 0;
+  width: 1px;
+  background-color: var(--line);
+}
+
+.item {
+  position: relative;
+}
+
+.dot {
+  position: absolute;
+  top: 1.1rem;
+  left: calc(-2.25rem - 5px);
+  width: 11px;
+  height: 11px;
+  border: 1px solid var(--muted);
+  border-radius: 50%;
+  background-color: var(--color-ink);
+  transition:
+    background-color 0.4s ease,
+    border-color 0.4s ease,
+    box-shadow 0.6s ease;
+}
+
+.item[data-lit] .dot {
+  border-color: var(--lit-color);
+  background-color: var(--lit-color);
+  box-shadow:
+    0 0 0 6px rgb(201 163 91 / 0.16),
+    0 0 24px 4px rgb(201 163 91 / 0.45);
+}
+
+.year {
+  display: block;
+  font-family: var(--font-serif);
+  font-size: clamp(2.75rem, 4.4vw, 4.5rem);
+  font-weight: 300;
+  line-height: 1;
+  font-variant-numeric: lining-nums;
+  color: var(--muted);
+  transition: color 0.5s ease;
+}
+
+.item[data-lit] .year {
+  color: var(--lit-color);
+}
+
+.body {
+  max-width: 30rem;
+  margin-top: 1rem;
+}
+
+.stem {
+  display: none;
+}
+
+.org {
+  margin-top: 0.375rem;
+  font-family: var(--font-serif);
+  font-size: var(--text-subheading);
+  line-height: var(--text-subheading--line-height);
+  font-weight: 300;
+}
+
+.points {
+  margin-top: 0.75rem;
+  display: grid;
+  gap: 0.375rem;
+  color: var(--muted);
+  font-size: var(--text-small);
+  line-height: var(--text-small--line-height);
+}
+
+.points li {
+  position: relative;
+  padding-left: 1rem;
+}
+
+.points li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.7em;
+  width: 0.5rem;
+  height: 1px;
+  background-color: currentColor;
+}
+
+/* ----- Horizontal timeline ---------------------------------------------------- */
+
+@media (scripting: enabled) and (prefers-reduced-motion: no-preference) and (width >= 64rem) and (
+    height >= 40rem
+  ) {
+  .section {
+    --track-w: calc((var(--lead-in) + var(--count) + var(--lead-out)) * var(--step));
+    /* Sideways travel, equal to the extra scroll height: from the first stop waiting
+       ahead of the head to the head passing the last one. TimelineMotion reads it back
+       from the height of the section. */
+    --travel: calc((var(--count) - 1 + var(--approach) + var(--beyond)) * var(--step));
+    /* Vertical rhythm of the track: years, thread, cards. Short screens tighten it. */
+    --year-size: clamp(2.25rem, min(3.6vw, 7svh), 3.75rem);
+    --year-gap: clamp(0.5rem, 1.6svh, 1rem);
+    --wave-h: clamp(2.5rem, 7svh, 4.5rem);
+    --card-gap: clamp(1.5rem, 3.6svh, 2.25rem);
+    /* Height of years, thread and cards together, with room for the tallest card. */
+    --block: calc(var(--year-size) + var(--year-gap) + var(--wave-h) + var(--card-gap) + 16rem);
+    /* Distance from the stem to the text. */
+    --pad: 1.25rem;
+    /* Length of the soft edge at the head of the lit thread. */
+    --fade: min(16vw, 14rem);
+
+    height: calc(100svh + var(--travel));
+  }
+
+  .stage {
+    position: sticky;
+    top: 0;
+    display: flex;
+    flex-direction: column;
+    height: 100svh;
+    max-width: none;
+    padding: 0;
+    overflow: hidden;
+  }
+
+  .intro {
+    width: 100%;
+    max-width: 96rem;
+    margin-inline: auto;
+    padding: calc(var(--header-h) + clamp(0.5rem, 3svh, 2.5rem)) var(--gutter) 0;
+  }
+
+  .title {
+    font-size: min(var(--text-title), 11svh);
+  }
+
+  .lines {
+    max-width: 34ch;
+    margin-top: clamp(0.75rem, 2svh, 1.5rem);
+  }
+
+  .line {
+    transition:
+      opacity 0.45s ease,
+      translate 0.6s var(--ease-out-quart);
+  }
+
+  .line[aria-hidden] {
+    display: block;
+  }
+
+  /* Lines already passed leave upwards, upcoming ones wait below. */
+  .line[data-state="past"] {
+    opacity: 0;
+    translate: 0 -0.6em;
+  }
+
+  .line[data-state="future"] {
+    opacity: 0;
+    translate: 0 0.6em;
+  }
+
+  /* Stops arrive and leave through soft edges of the screen. */
+  .viewport {
+    position: relative;
+    flex: 1;
+    mask-image: linear-gradient(
+      to right,
+      transparent,
+      #000 clamp(2rem, 6vw, 6rem),
+      #000 calc(100% - clamp(2rem, 6vw, 6rem)),
+      transparent
+    );
+  }
+
+  /* Starts shifted so that the first stop waits var(--approach) steps ahead of the head
+     on any screen width, and sits a little above the middle of the space under the
+     heading. */
+  .track {
+    position: absolute;
+    top: max(1rem, (100% - var(--block)) * 0.45);
+    bottom: 0;
+    left: calc(var(--head) * 100% + (var(--approach) - var(--lead-in) - 0.5) * var(--step));
+    width: var(--track-w);
+    will-change: transform;
+  }
+
+  /* The thread and the stops share this box, so the dots sit exactly on the line. */
+  .band {
+    position: absolute;
+    inset-inline: 0;
+    top: calc(var(--year-size) + var(--year-gap));
+    height: var(--wave-h);
+  }
+
+  .wave {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    fill: none;
+    stroke: var(--line);
+    /* Soft ends, in case a very wide screen ever shows them. */
+    mask-image: linear-gradient(
+      to right,
+      transparent,
+      #000 var(--step),
+      #000 calc(100% - 1.5 * var(--step)),
+      transparent
+    );
+  }
+
+  .wave path {
+    stroke-width: 1px;
+    vector-effect: non-scaling-stroke;
+  }
+
+  /* The lit copy follows the scroll and dissolves into the base thread at its head. */
+  .wave[data-lit] {
+    --head-x: calc(var(--lit, 0) * 100%);
+    stroke: var(--lit-color);
+    mask-image: linear-gradient(
+      to right,
+      transparent,
+      #000 var(--step),
+      #000 calc(var(--head-x) - 0.6 * var(--fade)),
+      transparent calc(var(--head-x) + 0.4 * var(--fade))
+    );
+  }
+
+  .list {
+    position: absolute;
+    inset: 0;
+    display: block;
+    margin: 0;
+    padding: 0;
+  }
+
+  .list::before {
+    display: none;
+  }
+
+  /* A zero-size anchor at the stop; everything else is laid out around it. */
+  .item {
+    position: absolute;
+    left: calc(var(--x) * 100%);
+    top: calc(var(--y) * 100%);
+    width: 0;
+    height: 0;
+  }
+
+  .dot {
+    top: -6px;
+    left: -6px;
+    width: 12px;
+    height: 12px;
+  }
+
+  /* Years line up in one row above the thread, cards in one row below it, both aligned
+     with the text of the card. */
+  .year {
+    position: absolute;
+    left: var(--pad);
+    bottom: calc(var(--y) * var(--wave-h) + var(--year-gap));
+    font-size: var(--year-size);
+    white-space: nowrap;
+  }
+
+  .body {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: calc(min(var(--step) - 4.5rem, 24rem) + var(--pad));
+    max-width: none;
+    margin: 0;
+    padding: calc((1 - var(--y)) * var(--wave-h) + var(--card-gap)) 0 0 var(--pad);
+  }
+
+  /* Grows out of the dot and runs down the whole card, dissolving past its end. */
+  .stem {
+    position: absolute;
+    top: 6px;
+    bottom: -3rem;
+    left: -0.5px;
+    display: block;
+    width: 1px;
+    background-image: linear-gradient(
+      to bottom,
+      rgb(201 163 91 / 0.75),
+      rgb(201 163 91 / 0.4) 55%,
+      transparent
+    );
+    transform-origin: top;
+  }
+}

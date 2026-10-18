@@ -1,0 +1,172 @@
+@import "tailwindcss";
+@import "lenis/dist/lenis.css";
+
+/* ----------------------------------------------------------------------------
+   Design tokens
+   Palette comes from the portrait: warm black of the jacket, bone of the shirt,
+   brass of the lamp. Brass marks things that are "lit": progress, the career
+   thread, focus.
+---------------------------------------------------------------------------- */
+
+@theme {
+  --color-ink: #15130f;
+  --color-ink-raised: #1f1c18;
+  --color-paper: #e8e3d9;
+  --color-paper-raised: #f3efe8;
+  --color-brass: #c9a35b;
+  --color-brass-deep: #82632a;
+
+  --font-serif: var(--font-cormorant), Georgia, "Times New Roman", serif;
+  --font-sans: var(--font-inter-tight), system-ui, "Segoe UI", Arial, sans-serif;
+
+  /* Type scale. Serif sizes are fluid; text sizes stay fixed for comfortable reading. */
+  --text-display: clamp(4.25rem, 13vw, 14rem);
+  --text-display--line-height: 0.84;
+  --text-display--letter-spacing: -0.03em;
+  --text-title: clamp(2.75rem, 6.4vw, 6.25rem);
+  --text-title--line-height: 0.95;
+  --text-title--letter-spacing: -0.02em;
+  --text-statement: clamp(1.75rem, 3.3vw, 3.25rem);
+  --text-statement--line-height: 1.14;
+  --text-statement--letter-spacing: -0.01em;
+  --text-heading: clamp(2rem, 3.2vw, 3.125rem);
+  --text-heading--line-height: 1.02;
+  --text-heading--letter-spacing: -0.01em;
+  --text-subheading: clamp(1.5rem, 2vw, 1.875rem);
+  --text-subheading--line-height: 1.15;
+  --text-lead: 1.1875rem;
+  --text-lead--line-height: 1.5;
+  --text-body: 1.0625rem;
+  --text-body--line-height: 1.55;
+  --text-small: 0.9375rem;
+  --text-small--line-height: 1.5;
+  --text-caption: 0.8125rem;
+  --text-caption--line-height: 1.4;
+
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+/* Surface-aware colours. Sections declare data-surface="dark|light"; components use
+   bg-surface, text-fg, text-muted, border-line and text-accent, so the same markup
+   works on both, and the header and floating button can follow the section below. */
+@theme inline {
+  --color-surface: var(--surface);
+  --color-fg: var(--fg);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-accent: var(--accent);
+}
+
+@layer base {
+  :root,
+  [data-surface="dark"] {
+    --surface: var(--color-ink);
+    --fg: var(--color-paper);
+    --muted: #a8a093;
+    --line: rgb(232 227 217 / 0.16);
+    --accent: var(--color-brass);
+    color-scheme: dark;
+  }
+
+  [data-surface="light"] {
+    --surface: var(--color-paper);
+    --fg: var(--color-ink);
+    --muted: #5f5950;
+    --line: rgb(21 19 15 / 0.16);
+    --accent: var(--color-brass-deep);
+    color-scheme: light;
+  }
+
+  :root {
+    --gutter: clamp(1rem, 4vw, 3rem);
+    --header-h: 3.75rem;
+    /* Film grain: a tile of light and dark specks layered over every surface. */
+    --grain: url("/grain.webp") 0 0 / 128px;
+    --grain-opacity: 0.6;
+    background-color: var(--color-ink);
+    interpolate-size: allow-keywords;
+    text-size-adjust: 100%;
+
+    @media (width >= 64rem) {
+      --header-h: 4.5rem;
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+      &:not(.lenis) {
+        scroll-behavior: smooth;
+      }
+    }
+  }
+
+  body {
+    min-height: 100svh;
+    background-color: var(--surface);
+    color: var(--fg);
+    font-family: var(--font-sans);
+    font-size: var(--text-body);
+    line-height: var(--text-body--line-height);
+    font-kerning: normal;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+
+  p,
+  li,
+  dd {
+    text-wrap: pretty;
+  }
+
+  ::selection {
+    background-color: var(--color-brass);
+    color: var(--color-ink);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+  }
+}
+
+/* Page-wide container with fluid side gutters. */
+@utility shell {
+  width: 100%;
+  max-width: 96rem;
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+/* Film grain over a surface; the tile has light and dark specks, so it works on both. */
+@utility grain {
+  position: relative;
+  isolation: isolate;
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background: var(--grain);
+    opacity: var(--grain-opacity);
+  }
+}
+
+/* Vertical rhythm between page sections. */
+@utility section-y {
+  padding-block: clamp(6rem, 12vw, 11rem);
+}
+
+/* Small sentence-case label used for section names and metadata. */
+@utility label {
+  font-size: var(--text-small);
+  line-height: var(--text-small--line-height);
+  color: var(--muted);
+  letter-spacing: 0.005em;
+}

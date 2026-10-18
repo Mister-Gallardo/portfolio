@@ -1,0 +1,254 @@
+.media {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 11;
+}
+
+/* The composition of the screenshots; its layers are placed in shares of its size. */
+.frame {
+  position: absolute;
+  inset: 0;
+}
+
+.layer {
+  position: absolute;
+}
+
+.shot {
+  display: block;
+  width: 100%;
+  overflow: hidden;
+  border-radius: 0.625rem;
+  background-color: #fff;
+  box-shadow:
+    0 0 0 1px rgb(255 255 255 / 0.06),
+    0 2.25rem 4rem -1.5rem rgb(0 0 0 / 0.75);
+  cursor: zoom-in;
+}
+
+.shot img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top left;
+  transition: scale 0.9s var(--ease-out-expo);
+}
+
+@media (hover: hover) {
+  .shot:hover img {
+    scale: 1.03;
+  }
+}
+
+/* One or two screenshots: a large one at the back, a smaller one in front of it. */
+.layer:nth-child(1) {
+  top: 0;
+  left: 0;
+  width: 80%;
+}
+
+.layer:nth-child(1) .shot {
+  aspect-ratio: 16 / 10.5;
+}
+
+.layer:nth-child(2) {
+  right: 0;
+  bottom: 0;
+  width: 52%;
+}
+
+.layer:nth-child(2) .shot {
+  aspect-ratio: 4 / 3;
+}
+
+/* Three: the main screen, a second one in front of it and a diagram peeking out on the
+   right, between the two. */
+.frame[data-count="3"] .layer:nth-child(1) {
+  width: 70%;
+}
+
+.frame[data-count="3"] .layer:nth-child(2) {
+  right: 6%;
+  z-index: 2;
+  width: 54%;
+}
+
+.frame[data-count="3"] .layer:nth-child(2) .shot {
+  aspect-ratio: 16 / 10;
+}
+
+.frame[data-count="3"] .layer:nth-child(3) {
+  top: 7%;
+  right: 0;
+  z-index: 1;
+  width: 32%;
+}
+
+.frame[data-count="3"] .layer:nth-child(3) .shot {
+  aspect-ratio: 1;
+}
+
+/* ----- Phone ------------------------------------------------------------------
+   A hand-drawn handset in CSS: a dark frame with a light edge, a bezel, side buttons
+   and an island over the screen, turned slightly towards the copy. It turns to face
+   the visitor on hover. */
+
+/* One definite cell, so the phone's percentage height resolves against the stage. */
+.phoneStage {
+  position: relative;
+  display: grid;
+  grid-template: minmax(0, 1fr) / minmax(0, 1fr);
+  place-items: center;
+  width: 100%;
+  aspect-ratio: 16 / 11;
+}
+
+/* A size container: the phone is sized from its height in container units, because
+   percentage heights inside a <button> do not resolve reliably. */
+.phoneDrift {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: min(92%, 36rem);
+  container-type: size;
+}
+
+.phone {
+  --radius: 2.75rem;
+  --bezel: 0.6rem;
+
+  position: relative;
+  display: block;
+  /* Inside the bezel, the screen keeps the screenshot's 306:600. */
+  width: calc((100cqh - 2 * var(--bezel)) * 306 / 600 + 2 * var(--bezel));
+  height: 100cqh;
+  border-radius: var(--radius);
+  background: linear-gradient(140deg, #4a453e, #1b1916 22%, #0d0c0b 55%, #2a2622 80%, #57514a);
+  box-shadow:
+    inset 0 0 0 1px rgb(255 255 255 / 0.22),
+    inset 0 0 0 3px #0b0a09,
+    1.5rem 2.5rem 4rem -1.5rem rgb(0 0 0 / 0.75),
+    0.5rem 1rem 1.5rem -0.5rem rgb(0 0 0 / 0.5);
+  cursor: zoom-in;
+  transform: perspective(1600px) rotateY(-16deg) rotateX(5deg) rotateZ(2deg);
+  transition: transform 0.9s var(--ease-out-expo);
+}
+
+@media (hover: hover) {
+  .phone:hover {
+    transform: perspective(1600px) rotateY(-5deg) rotateX(2deg) rotateZ(0.5deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .phone {
+    transition: none;
+  }
+}
+
+/* Side buttons: volume on the left, power on the right. */
+.phone::before,
+.phone::after {
+  content: "";
+  position: absolute;
+  width: 3px;
+  border-radius: 2px;
+}
+
+.phone::before {
+  top: 22%;
+  left: -3px;
+  height: 14%;
+  background: linear-gradient(to right, #57514a, #1b1916);
+}
+
+.phone::after {
+  top: 30%;
+  right: -3px;
+  height: 18%;
+  background: linear-gradient(to left, #57514a, #1b1916);
+}
+
+.screen {
+  position: absolute;
+  inset: var(--bezel);
+  overflow: hidden;
+  border-radius: calc(var(--radius) - var(--bezel));
+  background-color: #000;
+}
+
+.screen img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top;
+}
+
+/* The island, and a soft glare across the glass. */
+.screen::before,
+.screen::after {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.screen::before {
+  top: 2.2%;
+  left: 50%;
+  width: 30%;
+  height: 3.6%;
+  border-radius: 999px;
+  background-color: #000;
+  translate: -50% 0;
+}
+
+.screen::after {
+  inset: 0;
+  background: linear-gradient(
+    115deg,
+    rgb(255 255 255 / 0.16) 0%,
+    rgb(255 255 255 / 0.04) 28%,
+    transparent 46%
+  );
+}
+
+/* Smaller screens: the stage scales with the card like the other projects'
+   screenshots. A square suits a portrait phone better than their 16:11. */
+@media (width < 64rem) {
+  .phoneStage {
+    aspect-ratio: 1;
+    max-height: 30rem;
+  }
+}
+
+/*
+  Stacking cards (see Projects.module.css) have a fixed height, so the media takes
+  whatever height the column has left, up to its natural 16:11, and the composition is
+  scaled to fit inside it, like object-fit: contain. Short laptop screens then never
+  cut off the stack or the gallery button, and on tall ones the screenshots, the stack
+  and the button stay together.
+*/
+@media (width >= 64rem) and (height >= 45rem) {
+  .media,
+  .phoneStage {
+    flex: 1 1 0;
+    min-height: 0;
+    max-height: calc(100cqw * 11 / 16);
+    aspect-ratio: auto;
+  }
+
+  .media {
+    display: grid;
+    place-items: center;
+    container-type: size;
+  }
+
+  .frame {
+    position: relative;
+    inset: auto;
+    width: min(100cqw, 100cqh * 16 / 11);
+    aspect-ratio: 16 / 11;
+  }
+}

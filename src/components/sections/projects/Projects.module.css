@@ -1,0 +1,260 @@
+/*
+  Selected work. On large screens the section title stays pinned in the middle of
+  the viewport and the project cards slide over it one by one, stacking with a small
+  offset (pure CSS sticky; JavaScript only adds the dimming of covered cards).
+  Elsewhere the cards simply follow each other.
+*/
+
+.section {
+  --count: 4;
+  --stack-offset: 0.875rem;
+  --card-gap: 1.5rem;
+  padding-block: clamp(6rem, 12vw, 11rem);
+}
+
+.heading {
+  max-width: 96rem;
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+.cards {
+  display: grid;
+  gap: var(--card-gap);
+  max-width: 96rem;
+  margin: 3rem auto 0;
+  padding-inline: var(--gutter);
+}
+
+.card {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border: 1px solid rgb(232 227 217 / 0.07);
+  border-radius: 1.25rem;
+  background-color: var(--color-ink-raised);
+  color: var(--fg);
+  box-shadow: 0 -1.5rem 4rem -2rem rgb(0 0 0 / 0.35);
+}
+
+/* Glow in the product's own colour behind the screenshots. */
+.card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(
+    55% 65% at 72% 48%,
+    color-mix(in oklab, var(--project-accent) 26%, transparent),
+    transparent 72%
+  );
+}
+
+.body {
+  display: grid;
+  gap: 2.5rem;
+  padding: clamp(1.5rem, 3.2vw, 3rem);
+}
+
+.shade {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background-color: var(--color-ink);
+  opacity: 0;
+}
+
+.text {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  min-width: 0;
+}
+
+.title {
+  font-family: var(--font-serif);
+  font-size: var(--text-heading);
+  line-height: var(--text-heading--line-height);
+  letter-spacing: var(--text-heading--letter-spacing);
+  font-weight: 300;
+  max-width: 16ch;
+}
+
+.summary {
+  max-width: 52ch;
+  font-size: var(--text-body);
+  line-height: var(--text-body--line-height);
+  font-weight: 300;
+}
+
+.highlights {
+  display: grid;
+  gap: 0.625rem;
+  font-size: var(--text-small);
+  line-height: var(--text-small--line-height);
+}
+
+.highlights li {
+  position: relative;
+  padding-left: 1.5rem;
+}
+
+.highlights li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.72em;
+  width: 0.875rem;
+  height: 1px;
+  background-color: var(--accent);
+}
+
+.side {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  min-width: 0;
+}
+
+.stack {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+}
+
+.stack li {
+  padding: 0.3125rem 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-size: var(--text-caption);
+  line-height: var(--text-caption--line-height);
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+@media (width >= 64rem) {
+  .body {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    gap: clamp(2rem, 4vw, 4.5rem);
+    align-items: stretch;
+  }
+
+  .side {
+    justify-content: space-between;
+  }
+}
+
+/* ----- Pinned title and stacking cards ---------------------------------------- */
+
+@media (width >= 64rem) and (height >= 45rem) {
+  .section {
+    padding-block: 0 clamp(6rem, 10vw, 9rem);
+  }
+
+  /* Pinned with its text in the upper part of the screen while the cards slide over
+     it. The list is the last thing in the section, so the heading is released exactly
+     when the stack leaves and goes up under the last card, never showing again. */
+  .heading {
+    position: sticky;
+    top: 0;
+    z-index: 0;
+    display: grid;
+    place-content: start center;
+    padding-top: clamp(7rem, 24svh, 14rem);
+    text-align: center;
+  }
+
+  .intro {
+    margin-inline: auto;
+  }
+
+  /* The first card follows the text after a short gap, whatever the text's length. */
+  .cards {
+    position: relative;
+    z-index: 1;
+    gap: 0;
+    margin-top: clamp(2.5rem, 7svh, 5rem);
+  }
+
+  /* A short pause with the whole stack in place before it scrolls away. */
+  .cards::after {
+    content: "";
+    height: 10svh;
+  }
+
+  /* A sticky box stays stuck only while its margin box fits in the list. The bottom
+     margins make that limit the same for every card, so the stack stays until the last
+     card has landed and then leaves as a whole, offsets included. The space between
+     cards goes before each card instead. */
+  .cardItem {
+    position: sticky;
+    top: calc(var(--header-h) + 1rem + var(--index) * var(--stack-offset));
+    height: calc(100svh - var(--header-h) - 2rem - (var(--count) - 1) * var(--stack-offset));
+    margin-bottom: calc((var(--count) - 1 - var(--index)) * var(--stack-offset));
+  }
+
+  .cardItem + .cardItem {
+    margin-top: 14svh;
+  }
+
+  .card {
+    height: 100%;
+    transform-origin: 50% 0;
+    container: card / size;
+  }
+
+  .body {
+    height: 100%;
+  }
+
+  /* On tall screens both columns are shorter than the card: centre them rather than
+     leave the whole gap at the bottom. The side column is a container, so the media
+     can stop growing at its natural height (see ProjectMedia.module.css). */
+  .text,
+  .side {
+    justify-content: center;
+  }
+
+  .side {
+    container-type: inline-size;
+  }
+}
+
+/* Narrower desktops: the copy gets half of the card, the screenshots scale down. */
+@media (64rem <= width < 80rem) {
+  .body {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+}
+
+/* Shorter stacking cards (laptop screens): a tighter rhythm keeps everything inside. */
+@container card (height < 44rem) {
+  .body {
+    padding-block: 2rem;
+  }
+
+  .text {
+    gap: 0.875rem;
+  }
+
+  .title {
+    font-size: min(var(--text-heading), 2.5rem);
+  }
+
+  .highlights {
+    gap: 0.375rem;
+  }
+
+  .side {
+    gap: 1rem;
+  }
+}
+
+@container card (height < 38rem) {
+  .summary {
+    font-size: var(--text-small);
+    line-height: var(--text-small--line-height);
+  }
+}

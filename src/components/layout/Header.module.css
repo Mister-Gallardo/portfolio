@@ -1,0 +1,53 @@
+/*
+  A band of the current surface behind the bar, fading out downwards, so content that
+  scrolls underneath never runs into the links. The colour follows `data-surface`, and
+  the grain matches the sections.
+*/
+.scrim {
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: -1;
+  height: calc(var(--header-h) + 1.5rem);
+  background-color: var(--surface);
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 2.5rem), transparent);
+  pointer-events: none;
+  transition: background-color 0.3s;
+}
+
+.scrim::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--grain);
+  opacity: var(--grain-opacity);
+}
+
+/* Reading progress for small screens, where section links are hidden in the menu.
+   Driven by a CSS scroll timeline on the compositor: no JavaScript involved. */
+.progress {
+  display: none;
+}
+
+@supports (animation-timeline: scroll()) {
+  @media (width < 64rem) and (prefers-reduced-motion: no-preference) {
+    .progress {
+      position: absolute;
+      inset: 0 0 auto;
+      display: block;
+      height: 2px;
+      background-color: var(--accent);
+      transform-origin: left;
+      animation: grow linear both;
+      animation-timeline: scroll(root);
+    }
+  }
+}
+
+@keyframes grow {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
