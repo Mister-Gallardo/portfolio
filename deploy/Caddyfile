@@ -4,11 +4,11 @@
 	email mister.gallardo05@gmail.com
 }
 
-www.amir-aizov.ru {
-	redir https://amir-aizov.ru{uri} permanent
+www.amir-azizov.ru {
+	redir https://amir-azizov.ru{uri} permanent
 }
 
-amir-aizov.ru {
+amir-azizov.ru {
 	header Strict-Transport-Security "max-age=31536000"
 	reverse_proxy web:3000 {
 		# While a new version starts, requests wait for it instead of failing with 502.
