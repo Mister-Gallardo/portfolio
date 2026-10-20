@@ -4,10 +4,12 @@ on:
   push:
     branches: [main]
   pull_request:
+  # The "Run workflow" button: redeploys main without a new commit.
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: read
@@ -40,6 +42,8 @@ jobs:
 
   docker:
     name: Docker image
+    # On main the deploy job builds the image; a pull request only checks that it builds.
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -52,3 +56,55 @@ jobs:
           build-args: NEXT_PUBLIC_SITE_URL=https://example.com
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+  deploy:
+    name: Deploy
+    need: check
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment:
+      name: production
+      url: ${{ vars.SITE_URL }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: docker/setup-buildx-action@v4
+
+      - name: Build the image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          load: true
+          tags: portfolio:${{ github.sha }}
+          build-args: NEXT_PUBLIC_SITE_URL=${{ vars.SITE_URL }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Set up SSH
+        env:
+          SSH_KEY: ${{ secrets.SSH_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
+        run: |
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+
+      # The server never contacts GitHub: the image and the config come to it over SSH.
+      - name: Upload the image and the config
+        env:
+          SERVER: deploy@${{ secrets.SSH_HOST }}
+        run: |
+          docker save "portfolio:$GITHUB_SHA" | gzip | ssh "$SERVER" docker load
+          scp deploy/compose.yaml deploy/Caddyfile deploy/deploy.sh "$SERVER:/srv/portfolio/"
+
+      - name: Switch to the new version
+        env:
+          SERVER: deploy@${{ secrets.SSH_HOST }}
+        run: ssh "$SERVER" bash /srv/portfolio/deploy.sh "$GITHUB_SHA"
+
+      - name: Check the site
+        env:
+          SITE_URL: ${{ vars.SITE_URL }}
+        run: curl --fail --silent --show-error --output /dev/null "$SITE_URL"
