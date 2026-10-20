@@ -1,0 +1,17 @@
+# HTTPS for the site: Caddy obtains and renews the certificates itself
+# and redirects http:// to https://.
+{
+	email mister.gallardo05@gmail.com
+}
+
+www.amir-aizov.ru {
+	redir https://amir-aizov.ru{uri} permanent
+}
+
+amir-aizov.ru {
+	header Strict-Transport-Security "max-age=31536000"
+	reverse_proxy web:3000 {
+		# While a new version starts, requests wait for it instead of failing with 502.
+		lb_try_duration 30s
+	}
+}

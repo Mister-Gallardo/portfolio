@@ -1,0 +1,32 @@
+# The site on the server: the Next.js container behind Caddy.
+# deploy.sh starts it; TAG, the image tag (a commit hash), is read from .env next to this file.
+name: portfolio
+
+services:
+  web:
+    image: portfolio:${TAG:?TAG is not set, run deploy.sh}
+    restart: unless-stopped
+    # No ports: the app is reachable only through Caddy, over the network compose creates.
+    volumes:
+      # Optimized images outlive deploys, so they are encoded only once.
+      - image-cache:/app/.next/cache
+
+  caddy:
+    image: caddy:2.11-alpine
+    restart: unless-stopped
+    depends_on:
+      web:
+        condition: service_healthy
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp" # HTTP/3
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data # certificates: keep, or Let's Encrypt limits kick in
+      - caddy-config:/config
+
+volumes:
+  image-cache:
+  caddy-data:
+  caddy-config:
