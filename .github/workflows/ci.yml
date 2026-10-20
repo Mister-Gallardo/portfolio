@@ -9,6 +9,7 @@ on:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
+  # A newer push to a pull request cancels the older run; a deploy is never cut short.
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
@@ -59,7 +60,7 @@ jobs:
 
   deploy:
     name: Deploy
-    need: check
+    needs: check
     if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 20
