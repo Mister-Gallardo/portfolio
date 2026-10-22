@@ -12,6 +12,7 @@
   где нужны
 - **WebGL 2** без библиотек — дым на первом экране
 - **Biome** — линтер и форматтер
+- **Docker**, **Caddy** и **GitHub Actions** — сборка, HTTPS и автодеплой
 
 ## Производительность
 
@@ -40,7 +41,8 @@ pnpm install
 pnpm dev          # http://localhost:3000
 ```
 
-Продакшен-сборка локально: `pnpm build && pnpm start`.
+Продакшен-сборка локально: `pnpm build && pnpm start`. Без `NEXT_PUBLIC_SITE_URL`
+ссылки в метаданных и sitemap строятся от `http://localhost:3000`.
 
 ## Скрипты
 
@@ -53,7 +55,7 @@ pnpm dev          # http://localhost:3000
 | `pnpm lint:fix`  | то же с автоисправлением                           |
 | `pnpm format`    | только форматирование                              |
 | `pnpm typecheck` | проверка типов вместе с типами маршрутов           |
-| `pnpm check`     | `lint` и `typecheck`, как в CI                     |
+| `pnpm check`     | `lint` и `typecheck` — проверки CI, кроме сборки   |
 
 ## Структура
 
@@ -65,6 +67,7 @@ src/
 ├── components/
 │   ├── layout/         шапка, меню, плавающая кнопка
 │   ├── motion/         переиспользуемые эффекты
+│   ├── providers/      плавный скролл (Lenis)
 │   ├── sections/       секции страницы по порядку
 │   ├── seo/            структурированные данные
 │   └── ui/             кнопки и иконки
@@ -72,6 +75,10 @@ src/
 ├── i18n/               языки и словари
 ├── lib/                типографика, отложенный запуск, GSAP по требованию
 └── proxy.ts            маршрутизация языков
+
+Dockerfile              продакшен-образ
+deploy/                 compose.yaml, Caddyfile и deploy.sh для сервера
+.github/workflows/      CI/CD в GitHub Actions
 ```
 
 ## Как поменять контент
@@ -99,24 +106,51 @@ src/
 
 ## Деплой
 
-Сайт собирается в standalone-сервер Next.js и запускается в Docker:
+Сайт работает на VPS в Docker Compose: контейнер `web` со standalone-сервером Next.js и
+Caddy перед ним. У `web` нет опубликованных портов — снаружи открыты только 80 и 443
+у Caddy. Caddy сам получает и продлевает сертификаты Let's Encrypt, перенаправляет `http`
+и `www` на `https://amir-azizov.ru` и проксирует запросы на `web:3000`.
 
-```bash
-docker build --build-arg NEXT_PUBLIC_SITE_URL=https://example.com -t portfolio .
-docker run -d --restart unless-stopped -p 3000:3000 --name portfolio portfolio
-```
+| Файл | Что делает |
+| --- | --- |
+| `Dockerfile` | многостадийная сборка: standalone-сервер на `node:24-alpine`, без root, с healthcheck |
+| `deploy/compose.yaml` | сервисы `web` и `caddy`, тома для сертификатов и кэша картинок; тег образа — из `.env` |
+| `deploy/Caddyfile` | HTTPS, редирект с `www`, HSTS, прокси на `web:3000` |
+| `deploy/deploy.sh` | переключает версию через `docker compose up --wait`; если новая не стала healthy, возвращает прошлую |
 
-- `NEXT_PUBLIC_SITE_URL` — публичный адрес сайта, обязателен. Из него собираются
-  canonical-ссылки, Open Graph и sitemap.
-- Подойдёт любой VPS, в том числе российский. Перед контейнером нужен обратный прокси с
-  HTTPS — Caddy или nginx.
+Новая версия попадает на сервер так:
+
+1. GitHub Actions собирает Docker-образ.
+2. Образ уходит на сервер по SSH (`docker save | ssh … docker load`), файлы из `deploy/` —
+   в `/srv/portfolio`.
+3. `deploy.sh` переключает сайт на новый образ, затем workflow проверяет, что сайт отвечает.
+
+Сервер не скачивает образ сайта ни с GitHub, ни с Docker Hub, поэтому их доступность
+в России на деплой не влияет.
+
+- `NEXT_PUBLIC_SITE_URL` — публичный адрес сайта, задаётся при сборке образа и обязателен:
+  из него собираются canonical-ссылки, Open Graph и sitemap. В GitHub это переменная
+  `SITE_URL` окружения `production`.
 - В образе задан `HOSTNAME=0.0.0.0`, не переопределяйте его: от него зависят языковые
   rewrite-ы.
+
+Проверить образ на своей машине — здесь порт публикуется только для локального запуска:
+
+```bash
+docker build --build-arg NEXT_PUBLIC_SITE_URL=http://localhost:3000 -t portfolio .
+docker run --rm -p 3000:3000 portfolio   # http://localhost:3000
+```
 
 Без Docker: `NEXT_OUTPUT=standalone pnpm build`, затем скопировать `.next/static` и
 `public` в `.next/standalone` и запустить там `node server.js`.
 
-## CI
+## CI/CD
 
-GitHub Actions на каждый push в `main` и на каждый pull request: Biome, TypeScript,
-сборка сайта и сборка Docker-образа.
+GitHub Actions, файлы в `.github/workflows/`:
+
+- **Pull request** — CI: Biome, TypeScript, сборка сайта и тестовая сборка Docker-образа.
+- **Push в `main`** — те же проверки, затем CD: деплой на сервер, описанный выше.
+  Кнопка Run workflow перевыкатывает `main` без нового коммита.
+
+Ключ и адрес сервера (`SSH_KEY`, `SSH_HOST`, `SSH_KNOWN_HOSTS`) хранятся в секретах
+окружения `production`, адрес сайта — в его переменной `SITE_URL`.
