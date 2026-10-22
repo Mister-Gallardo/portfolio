@@ -1,7 +1,7 @@
 # HTTPS for the site: Caddy obtains and renews the certificates itself
 # and redirects http:// to https://.
 {
-	email mister.gallardo05@gmail.com
+	email amir.azizov.dev@gmail.com
 }
 
 www.amir-azizov.ru {

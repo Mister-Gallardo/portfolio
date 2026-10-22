@@ -2,7 +2,7 @@ export const site = {
   /** Canonical origin, set NEXT_PUBLIC_SITE_URL in production. */
   url: (process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000').replace(/\/$/, ''),
   telegram: { handle: '@Asket_AAV', url: 'https://t.me/Asket_AAV' },
-  email: 'mister.gallardo05@gmail.com',
+  email: 'amir.azizov.dev@gmail.com',
   github: {
     handle: 'Mister-Gallardo',
     url: 'https://github.com/Mister-Gallardo',
